@@ -19,7 +19,9 @@ cd quadrobot-mqtt-gui
 ```bash
 npm install
 ```
-
+```bash
+npm install mqtt
+```
 ### 3. Chạy mock device (Node.js)
 
 ```bash
