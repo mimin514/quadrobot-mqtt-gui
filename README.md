@@ -28,12 +28,16 @@ node mock-device.js
 
 ### 4. Chạy giao diện
 
-* **Web**: mở trực tiếp file `index.html` trong trình duyệt
-* **Electron**:
-
-```bash
-npm start
+* **Web**: mở trực tiếp file `index.html` trong trình duyệt:
+ ```bash
+http-server
 ```
+
+* **Electron**:
+```bash
+node electron .
+```
+
 
 ---
 
