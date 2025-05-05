@@ -35,7 +35,7 @@ http-server
 
 * **Electron**:
 ```bash
-node electron .
+npx electron .
 ```
 
 
