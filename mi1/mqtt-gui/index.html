@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MQTT GUI</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1b2a;
+      color: #ffffff;
+      padding: 10px;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 10px 0 ;
+    }
+
+    .body {
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .main-layout {
+      display: flex;
+      gap: 20px;
+      height: min(700px, calc(100vh - 80px));
+      max-height: 700px;
+    }
+
+    .left-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow: hidden;
+      max-width: fit-content;
+    }
+    
+    .right-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    
+    .input {
+      background-color: #1b263b;
+      padding: 0 20px 20px 20px;
+      border-radius: 10px;
+      max-width: 570px;
+    }
+
+    .input-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .input-left,
+    .input-right {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .input-left h2,
+    .input-right h2,
+    .log-section h2, input h2 {
+      color: #caf0f8;
+      text-align: center;
+      margin:15px 0;
+    }
+
+    .input-container label {
+      display: flex;
+      justify-content: space-between;
+      width: 140px;
+      color: #f8f9fa;
+    }
+
+    .input-container input {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 120px;
+      height: 40px;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #00b4d8;
+      color: #ffffff;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .input-row label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #f8f9fa;
+    }
+    
+    .input-row input {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100px;
+    }
+    
+    .button-row {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    button:hover {
+      background: #0077b6;
+    }
+    .chart-container {
+      padding: 20px 10px;
+      width: 100%;
+      height: 100%;
+    }
+    .hidden {
+      display: none;
+    }
+    
+    .log-section {
+      background-color: #1b263b;
+      border-radius: 10px;
+      padding: 0 10px 10px;
+      flex-grow: 1;
+      min-width: 300px;
+    }
+
+    .log-container {
+      background-color: #0d1b2a;
+      color: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      padding: 10px;
+      border-radius: 6px;
+      height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      border: 1px solid #243b55;
+      height: 200px;
+    }
+
+    .chart-section {
+      flex: 1;
+      background-color: #1b263b;
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .chart-section canvas {
+      flex-grow: 1;
+      width: 100% !important;
+      height: 100% !important;
+      max-height: none;
+    }
+    
+
+    .chart-section h2 {
+      color: #caf0f8;
+      text-align: center;
+      margin: 0 0 12px 0;
+      font-size: medium;
+    }
+
+    
+    canvas {
+      background-color: #ffffff;
+      border-radius: 10px;
+      width: 100%;
+    }
+
+    .card-container {
+        display: flex;
+        gap:25px;
+        align-items: center;       /* đảm bảo các card nằm chính giữa */
+        width: 100%;
+      }
+
+
+      .card {
+        padding: 20px;
+        width: 170px;
+        border-radius: 16px;
+        text-align: center;
+        background: linear-gradient(145deg, #1b263b, #243b55);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+      
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+      }
+      
+    .card h2 {
+      margin: 0;
+      font-size: 18px;
+      color: #90e0ef;
+    }
+
+    .card span {
+      font-weight: bold;
+      font-size: 20px;
+      color: #ffcb77;
+    }
+    .pid-card {
+        background: linear-gradient(145deg, #2b3e60, #4974a7);
+      }
+      
+
+      @media (max-width: 768px) {
+        .main-layout {
+          flex-direction: column;
+          height: auto;
+        }
+      
+        .input-container {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      
+        .right-column {
+          flex-direction: column;
+        }
+      
+        .log-section {
+          max-width: 100%;
+          width: 100%;
+          margin-top: 10px;
+        }
+      
+        .chart-section canvas {
+          max-height: 250px;
+        }
+      }
+      
+  </style>
+</head>
+
+<body>
+  <div class="body">
+    <h1>MQTT GUI Control</h1>
+
+    <div class="main-layout">
+      <!-- Left Side -->
+      <div class="left-column">
+        <!-- Input + Log -->
+        <!-- Cards -->
+        <div class="card-container">
+          <div class="card"><h2>Kp</h2><span id="currentKp">0</span></div>
+          <div class="card"><h2>Ki</h2><span id="currentKi">0</span></div>
+          <div class="card"><h2>Kd</h2><span id="currentKd">0</span></div>
+
+        </div>
+        <div class="card-container">
+
+          <div class="card pid-card"><h2>Roll</h2><span id="roll">0</span></div>
+          <div class="card pid-card"><h2>Pitch</h2><span id="pitch">0</span></div>
+          <div class="card pid-card"><h2>Yaw</h2><span id="yaw">0</span></div>
+        </div>
+        <!-- Các span ID được ẩn -->
+<span id="legangle1" style="display: none;">0</span>
+<span id="legangle2" style="display: none;">0</span>
+<span id="legangle3" style="display: none;">0</span>
+        <div class="input ">
+          <h2 style="text-align: center; margin:15px 0;color: #caf0f8;">PID Parameters</h2>
+        
+          <!-- Input PID nằm ngang -->
+          <div class="input-row">
+            <label>Kp: <input id="kpInput" type="number" step="0.01"></label>
+            <label>Ki: <input id="kiInput" type="number" step="0.01"></label>
+            <label>Kd: <input id="kdInput" type="number" step="0.01"></label>
+          </div>
+        
+          <!-- Button nằm ngang phía dưới -->
+          <div class="button-row">
+            <button onclick="sendPID()">Gửi PID</button>
+            <button id="toggleButton" onclick="toggleReceiving()" style="background-color:red;">Dừng</button>
+            <button onclick="resetData()"style="background-color:yellow;color:black;">Reset</button>
+          </div>
+        
+          <!-- Log -->
+          
+        </div>
+        <div class="input">
+        <div class="log-section">
+          <h2>Activity Log</h2>
+          <div id="logContainer" class="log-container"></div>
+        </div></div>
+
+        
+      </div>
+
+      <!-- Right Side: Charts -->
+      <div class="right-column" style="flex-direction: column; gap: 10px;">
+        <div class="chart-section">
+          <h2>Biểu đồ</h2>
+          <!-- Thêm nút "PID" -->
+<div class="button-row">
+  <button onclick="showChart('PID')" class="tab">PID</button>
+  <button onclick="showChart('FL')" class="tab">Front Left</button>
+  <button onclick="showChart('FR')" class="tab">Front Right</button>
+  <button onclick="showChart('RL')" class="tab">Rear Left</button>
+  <button onclick="showChart('RR')" class="tab">Rear Right</button>
+</div>
+
+<!-- Biểu đồ PID -->
+<div id="chartContainerPID" class="chart-container"><canvas id="imuChart1" ></canvas></div>
+
+<!-- Biểu đồ các chân -->
+<div id="chartContainerFL" class="chart-container hidden"><canvas id="chartFL"></canvas></div>
+<div id="chartContainerFR" class="chart-container hidden"><canvas id="chartFR"></canvas></div>
+<div id="chartContainerRL" class="chart-container hidden"><canvas id="chartRL"></canvas></div>
+<div id="chartContainerRR" class="chart-container hidden"><canvas id="chartRR"></canvas></div>
+
+      </div>
+      </body>
+      </html>
+
+ <script src="renderer.js"></script>
+      </div>       
+    </div>
+  </div>
+</body>
+
+
+</html>
