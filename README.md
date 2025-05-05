@@ -89,7 +89,9 @@ git push -u origin main
 > Bạn có thể thêm ảnh chụp màn hình nếu muốn, ví dụ:
 >
 > ```markdown
-> ![Giao diện chính](screenshot.png)
+>
+>![image](https://github.com/user-attachments/assets/8cf2ed4e-817c-4e23-a9ac-02124a21b6e3)
+ 
 > ```
 
 ---
