@@ -23,7 +23,7 @@ npm install
 npm install mqtt
 ```
 ### 3. Chạy mock device (Node.js)
-
+Mở 1 terminal khác để chạy:
 ```bash
 node mock-device.js
 ```
@@ -88,12 +88,5 @@ git push -u origin main
 
 ## 📸 Giao diện minh hoạ (tuỳ chọn)
 
-> Bạn có thể thêm ảnh chụp màn hình nếu muốn, ví dụ:
->
-> ```markdown
->
->![image](https://github.com/user-attachments/assets/8cf2ed4e-817c-4e23-a9ac-02124a21b6e3)
+![image](https://github.com/user-attachments/assets/8cf2ed4e-817c-4e23-a9ac-02124a21b6e3)
  
-> ```
-
----
