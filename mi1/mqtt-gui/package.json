@@ -2,9 +2,10 @@
   "name": "mqtt-gui",
   "version": "1.0.0",
   "main": "main.js",
-  "type":"commonjs",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-packager . huuanh --platform=win32 --arch=x64 --out=dist --overwrite"
   },
   "keywords": [],
   "author": "",
@@ -13,10 +14,11 @@
   "dependencies": {
     "chart.js": "^4.4.9",
     "chartjs-plugin-zoom": "^2.2.0",
-    "electron": "^36.1.0",
     "mqtt": "^5.12.0"
   },
   "devDependencies": {
+    "electron": "^36.2.0",
+    "electron-packager": "^17.1.2",
     "electron-reload": "^2.0.0-alpha.1"
   }
 }
