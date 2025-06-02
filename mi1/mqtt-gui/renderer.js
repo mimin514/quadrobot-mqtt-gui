@@ -1,6 +1,11 @@
+// Kết nối MQTT
+const mqtt = require('mqtt');
+const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+
 // Trạng thái nhận dữ liệu
 let receiving = true;
-let nummax=50;
+let nummax = 50;
+
 // Ghi log ra màn hình
 function logMessage(message) {
   const logContainer = document.getElementById('logContainer');
@@ -37,6 +42,18 @@ function sendPID() {
       logMessage(`Gửi PID thành công: ${frame}`);
     }
   });
+    const pitch = document.getElementById('pitchSliderNum').value;
+  const roll = document.getElementById('rollSliderNum').value;
+  const yaw = document.getElementById('yaw').textContent || 0; // hoặc thêm input yaw nếu muốn
+  const frame1 = `PRY:Roll=${roll};Pitch=${pitch};Yaw=${yaw}`;
+  logMessage(`Đã gửi Pitch/Roll/Yaw: Roll=${roll}, Pitch=${pitch}, Yaw=${yaw}`);
+  client.publish('imu/control', frame1, (err) => {
+    if (err) {
+      logMessage(`Gửi Pitch/Roll/Yaw thất bại: ${err.message}`);
+    } else {
+      logMessage(`Gửi Pitch/Roll/Yaw thành công: ${frame1}`);
+    }
+  });
 }
 
 // Bật/tắt nhận dữ liệu
@@ -68,19 +85,24 @@ function resetData() {
     chart.update();
   });
 
-  ['roll', 'pitch', 'yaw'].forEach(id => document.getElementById(id).textContent = 0);
+  ['roll', 'pitch', 'yaw', 'height'].forEach(id => document.getElementById(id).textContent = 0);
   logMessage('Dữ liệu đã được reset');
 }
-
-// Hiển thị biểu đồ chân
-function showLeg(leg) {
-  ['FL', 'FR', 'RL', 'RR'].forEach(l =>
-    document.getElementById(`chartContainer${l}`).classList.add('hidden')
-  );
-  document.getElementById(`chartContainer${leg}`).classList.remove('hidden');
+function isUserAtEnd(chart) {
+  const xScale = chart.scales['x'];
+  return Math.abs(xScale.max - chart.data.labels.length) < 1;
 }
 
-// Hiển thị biểu đồ theo loại
+client.on('message', (topic, message) => {
+  if (!isUserAtEnd(imuChart1)) return;  // Không cập nhật nếu người dùng đang xem lại
+
+  // cập nhật dữ liệu như bình thường
+});
+function resetView() {
+  imuChart1.resetZoom(); // hoặc tự scroll về cuối
+}
+
+// Hiển thị biểu đồ theo tab
 function showChart(chartType) {
   const charts = ['PID', 'FL', 'FR', 'RL', 'RR'];
   charts.forEach(type => {
@@ -90,195 +112,140 @@ function showChart(chartType) {
   const target = document.getElementById('chartContainer' + chartType);
   if (target) target.classList.remove('hidden');
 }
+function syncSliderAndNumber(idPrefix) {
+  const slider = document.getElementById(idPrefix + 'Slider');
+  const number = document.getElementById(idPrefix + 'SliderNum');
 
-// Kết nối MQTT
-const mqtt = require('mqtt');
-const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
-client.on('connect', () => {
-  console.log('MQTT connected');
-  logMessage('MQTT connected');
-  client.subscribe('imu/data');
-});
+  slider.addEventListener('input', () => {
+    number.value = slider.value;
+  });
 
-// Cấu hình biểu đồ chính (PID)
-const ctx1 = document.getElementById('imuChart1').getContext('2d');
-const imuChart1 = new Chart(ctx1, {
+  number.addEventListener('input', () => {
+    slider.value = number.value;
+  });
+}
+syncSliderAndNumber('pitch');
+syncSliderAndNumber('roll');
+syncSliderAndNumber('height'); // nếu bạn cần gửi height
+// const MAX_POINTS = 50;
+
+// if (imuChart1.data.labels.length > MAX_POINTS) {
+//   imuChart1.data.labels.shift();
+//   imuChart1.data.datasets.forEach(dataset => dataset.data.shift());
+// }
+
+// Tạo biểu đồ Chart.js
+const imuChart1 = new Chart(document.getElementById('imuChart1'), {
   type: 'line',
   data: {
     labels: [],
     datasets: [
-      { label: 'Roll', data: [], borderColor: 'orange ', fill: false },
-      { label: 'Pitch', data: [], borderColor: 'blue', fill: false },
-      { label: 'Yaw', data: [], borderColor: 'red', fill: false }
+      { label: 'Roll', data: [], borderColor: 'red', borderWidth: 1, fill: false },
+      { label: 'Pitch', data: [], borderColor: 'blue', borderWidth: 1, fill: false },
+      { label: 'Yaw', data: [], borderColor: 'green', borderWidth: 1, fill: false }
     ]
   },
   options: {
-    animation: false,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        type: 'category',
-        display: true,
-        ticks: {
-          autoSkip: true,
-          maxTicksLimit: 10
-        }
-      },
-      y: {
-        min: -30,
-        max: 30
-      }
-    },
+    responsive: true,
     plugins: {
       zoom: {
-        pan: {
-          enabled: true,
-          mode: 'x',
-          modifierKey: 'ctrl', // hoặc 'alt', 'shift' để người dùng giữ để cuộn
-        },
-        zoom: {
-          wheel: {
-            enabled: true
-          },
-          pinch: {
-            enabled: true
-          },
-          mode: 'x',
-        },
-        limits: {
-          x: { min: 0 }
-        }
-      },
-      title: {
-        display: true,
-        text: 'Pitch, Roll, Yaw'
-      },
-      legend: {
-        display: true,
-        onClick: (e, legendItem, legend) => {
-          const chart = legend.chart;
-          const index = legendItem.datasetIndex;
-          const meta = chart.getDatasetMeta(index);
-          meta.hidden = !meta.hidden;
-          chart.update();
-        }
+        pan: { enabled: true, mode: 'x' },
+        zoom: { pinch: { enabled: true }, wheel: { enabled: true }, mode: 'x' }
       }
     }
-    
   }
-  
 });
 
-function createLegChartConfig(title) {
-  return {
+// Tạo biểu đồ cho từng chân
+function createLegChart(canvasId, label) {
+  return new Chart(document.getElementById(canvasId), {
     type: 'line',
     data: {
       labels: [],
       datasets: [
-        { label: 'Angle 1', data: [], borderColor: 'orange', fill: false },
-        { label: 'Angle 2', data: [], borderColor: 'red', fill: false },
-        { label: 'Angle 3', data: [], borderColor: 'blue', fill: false }
+        { label: label, data: [], borderColor: 'orange', borderWidth: 1, fill: false }
       ]
     },
     options: {
-      animation: false,
-      maintainAspectRatio: false,
-      scales: {
-        x: { display: true },
-        y: { min: 0, max: 180 }
-      },
+      responsive: true,
       plugins: {
         zoom: {
-          pan: {
-            enabled: true,
-            mode: 'x',
-            modifierKey: 'ctrl'  // để người dùng giữ Ctrl rồi kéo chuột
-          },
-          zoom: {
-            wheel: { enabled: true },
-            pinch: { enabled: true },
-            mode: 'x',
-          },
-          limits: {
-            x: { min: 0 }
-          }
-        },
-        title: { display: true, text: title },
-        legend: {
-          display: true,
-          onClick: (e, legendItem, legend) => {
-            const chart = legend.chart;
-            const index = legendItem.datasetIndex;
-            const meta = chart.getDatasetMeta(index);
-            meta.hidden = !meta.hidden;
-            chart.update();
-          }
+          pan: { enabled: true, mode: 'x' },
+          zoom: { pinch: { enabled: true }, wheel: { enabled: true }, mode: 'x' }
         }
       }
-      
     }
-  };
+  });
 }
 
-const chartFL = new Chart(document.getElementById('chartFL'), createLegChartConfig('Front Left'));
-const chartFR = new Chart(document.getElementById('chartFR'), createLegChartConfig('Front Right'));
-const chartRL = new Chart(document.getElementById('chartRL'), createLegChartConfig('Rear Left'));
-const chartRR = new Chart(document.getElementById('chartRR'), createLegChartConfig('Rear Right'));
+const chartFL = createLegChart('chartFL', 'Front Left');
+const chartFR = createLegChart('chartFR', 'Front Right');
+const chartRL = createLegChart('chartRL', 'Rear Left');
+const chartRR = createLegChart('chartRR', 'Rear Right');
 
-function addDataToChart(chart, d1, d2, d3) {
-  const now = new Date().toLocaleTimeString();
+// Lắng nghe dữ liệu MQTT
+client.on('connect', () => {
+  logMessage('Đã kết nối đến MQTT Broker');
+  client.subscribe('imu/data');
+});
 
-  chart.data.labels.push(now);
-  chart.data.datasets[0].data.push(d1);
-  chart.data.datasets[1].data.push(d2);
-  chart.data.datasets[2].data.push(d3);
-  const total = chart.data.labels.length;
-  if (!chart.options.scales.x.min || total - nummax > chart.options.scales.x.min) {
-    chart.options.scales.x.min = total > nummax ? total - nummax : 0;
-    chart.options.scales.x.max = total - 1;
-  }
-
-  chart.update('none');
-}
-
-function addDataToChart1(roll, pitch, yaw) {
-  const time = new Date().toLocaleTimeString();
-  imuChart1.data.labels.push(time);
-  imuChart1.data.datasets[0].data.push(roll);
-  imuChart1.data.datasets[1].data.push(pitch);
-  imuChart1.data.datasets[2].data.push(yaw);
-
-  const total = imuChart1.data.labels.length;
-  if (!imuChart1.options.scales.x.min || total - nummax > imuChart1.options.scales.x.min) {
-    imuChart1.options.scales.x.min = total > nummax ? total - nummax : 0;
-    imuChart1.options.scales.x.max = total - 1;
-  }
-
-  imuChart1.update('none'); // 'none' to skip animation
-}
-
-
-// Nhận dữ liệu từ MQTT
 client.on('message', (topic, message) => {
   if (!receiving) return;
 
-  const payload = message.toString();
-  if (!payload.startsWith('IMU:')) return;
+  const data = message.toString();
+  logMessage(`Nhận: ${data}`);
 
-  const values = payload.replace('IMU:', '').split(';');
-  const data = {};
-  values.forEach(pair => {
-    const [key, value] = pair.split('=');
-    data[key] = parseFloat(value);
+  // Bỏ tiền tố "IMU:" nếu có
+  let payload = data.startsWith('IMU:') ? data.slice(4) : data;
+
+  // Tách thành các cặp key=value
+  const pairs = payload.split(';').map(s => s.trim()).filter(s => s.includes('='));
+  const values = {};
+  pairs.forEach(pair => {
+    const [key, val] = pair.split('=');
+    values[key] = val;
   });
 
-  document.getElementById('roll').textContent = data.Roll;
-  document.getElementById('pitch').textContent = data.Pitch;
-  document.getElementById('yaw').textContent = data.Yaw;
-  addDataToChart1(data.Roll, data.Pitch, data.Yaw);
+  // Map dữ liệu IMU
+  const R = parseFloat(values['Roll']) || 0;
+  const P = parseFloat(values['Pitch']) || 0;
+  const Y = parseFloat(values['Yaw']) || 0;
 
-  addDataToChart(chartFL, data.FLAngle1, data.FLAngle2, data.FLAngle3);
-  addDataToChart(chartFR, data.FRAngle1, data.FRAngle2, data.FRAngle3);
-  addDataToChart(chartRL, data.RLAngle1, data.RLAngle2, data.RLAngle3);
-  addDataToChart(chartRR, data.RRAngle1, data.RRAngle2, data.RRAngle3);
+  // Lấy dữ liệu góc chân robot (chỉ lấy Angle1 cho đơn giản)
+  const FL = parseFloat(values['FLAngle1']) || 0;
+  const FR = parseFloat(values['FRAngle1']) || 0;
+  const RL = parseFloat(values['RLAngle1']) || 0;
+  const RR = parseFloat(values['RRAngle1']) || 0;
+
+  const time = new Date().toLocaleTimeString();
+
+  // Cập nhật biểu đồ IMU
+  imuChart1.data.labels.push(time);
+  imuChart1.data.datasets[0].data.push(R);
+  imuChart1.data.datasets[1].data.push(P);
+  imuChart1.data.datasets[2].data.push(Y);
+  imuChart1.update();
+
+  // Cập nhật biểu đồ từng chân
+  chartFL.data.labels.push(time);
+  chartFL.data.datasets[0].data.push(FL);
+  chartFL.update();
+
+  chartFR.data.labels.push(time);
+  chartFR.data.datasets[0].data.push(FR);
+  chartFR.update();
+
+  chartRL.data.labels.push(time);
+  chartRL.data.datasets[0].data.push(RL);
+  chartRL.update();
+
+  chartRR.data.labels.push(time);
+  chartRR.data.datasets[0].data.push(RR);
+  chartRR.update();
+
+  // Cập nhật giá trị trên UI
+  document.getElementById('roll').textContent = R;
+  document.getElementById('pitch').textContent = P;
+  document.getElementById('yaw').textContent = Y;
 });
+

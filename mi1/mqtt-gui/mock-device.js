@@ -2,6 +2,8 @@ const mqtt = require('mqtt');
 const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
 let kp = 1.0, ki = 0.0, kd = 0.0;
+let manualRoll = null, manualPitch = null, manualYaw = null;
+
 let integral = 0, lastError = 0;
 let target = 0;
 let receiving = true; // Trạng thái nhận dữ liệu
@@ -23,9 +25,9 @@ client.on('connect', () => {
 
     let output = kp * error + ki * integral + kd * derivative;
 
-    const roll = (output + Math.random() * 5 - 2.5).toFixed(1);
-    const pitch = (output / 2 + Math.random() * 5 - 2.5).toFixed(1);
-    const yaw = (output + Math.random() * 10 - 5).toFixed(1);
+    const roll = manualRoll !== null ? manualRoll : (Math.random() * 10 - 5).toFixed(1);
+    const pitch = manualPitch !== null ? manualPitch : (Math.random() * 10 - 5).toFixed(1);
+    const yaw = manualYaw !== null ? manualYaw : (Math.random() * 10 - 5).toFixed(1);
 
     // Giả lập 3 biến góc cho từng chân robot
     const legs = ['FL', 'FR', 'RL', 'RR'];
@@ -37,7 +39,7 @@ client.on('connect', () => {
     }).join(';');
 
     // Gửi dữ liệu qua MQTT
-    const msg = `IMU:Roll=${roll};Pitch=${pitch};Yaw=${yaw};${legData}`;
+    const msg = `Roll=${roll};Pitch=${pitch};Yaw=${yaw};${legData}`;
     client.publish('imu/data', msg);
     console.log('Published:', msg);
   }, 1000);
@@ -52,6 +54,7 @@ client.on('message', (topic, message) => {
       if (key === 'Kp') kp = parseFloat(value);
       if (key === 'Ki') ki = parseFloat(value);
       if (key === 'Kd') kd = parseFloat(value);
+  
     });
     console.log(`Updated PID → Kp=${kp}, Ki=${ki}, Kd=${kd}`);
   } else if (payload === 'STOP') {
@@ -60,5 +63,16 @@ client.on('message', (topic, message) => {
   } else if (payload === 'START') {
     receiving = true; // Tiếp tục nhận dữ liệu
     console.log('Tiếp tục gửi dữ liệu');
+  }
+  else if (payload.startsWith('PRY:')) {
+    // Nhận giá trị thủ công
+    const pairs = payload.replace('PRY:', '').split(';');
+    pairs.forEach(pair => {
+      const [key, value] = pair.split('=');
+      if (key === 'Roll') manualRoll = parseFloat(value);
+      if (key === 'Pitch') manualPitch = parseFloat(value);
+      if (key === 'Yaw') manualYaw = parseFloat(value);
+    });
+    console.log(`Nhận thủ công: Roll=${manualRoll}, Pitch=${manualPitch}, Yaw=${manualYaw}`);
   }
 });
