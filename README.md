@@ -27,7 +27,10 @@ Mở 1 terminal khác để chạy:
 ```bash
 node mock-device.js
 ```
-
+hoặc từ file giống pid.cpp
+```bash
+node pid.js
+```
 ### 4. Chạy giao diện
 
 * **Web**: mở trực tiếp file `index.html` trong trình duyệt:
@@ -57,6 +60,7 @@ Topic dữ liệu: imu/data
 
 * `renderer.js`
 * `mock-device.js`
+* `pid.js`
 
 ---
 
@@ -83,10 +87,12 @@ git commit -m "Initial commit: QuadRobot MQTT GUI"
 git remote add origin https://github.com/<your-username>/quadrobot-mqtt-gui.git
 git push -u origin main
 ```
+## 📌 Đóng gói thành thư mục chứa file có đuôi exe
+```bash
+npm run package    
 
----
+```
+## 📸 Giao diện hiện tại
+![image](https://github.com/user-attachments/assets/38e510be-0a54-4d64-aae1-b60a1cf09f54)
 
-## 📸 Giao diện minh hoạ (tuỳ chọn)
-
-![image](https://github.com/user-attachments/assets/8cf2ed4e-817c-4e23-a9ac-02124a21b6e3)
  
