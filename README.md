@@ -35,6 +35,7 @@ node pid.js
 
 * **Web**: mở trực tiếp file `index.html` trong trình duyệt:
  ```bash
+npm install -g http-server // download http-server
 http-server
 ```
 
