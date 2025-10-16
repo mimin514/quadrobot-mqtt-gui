@@ -1,4 +1,4 @@
-# 🦿 QuadRobot MQTT GUI
+<img width="975" height="514" alt="image" src="https://github.com/user-attachments/assets/8f532567-14c8-4996-8a13-91e99f92c3bd" /># 🦿 QuadRobot MQTT GUI
 
 Giao diện điều khiển và giám sát robot 4 chân thông qua giao thức **MQTT**.
 Hỗ trợ **điều chỉnh thông số PID** và **hiển thị biểu đồ thời gian thực** cho các góc IMU (Roll, Pitch, Yaw) và **3 góc của mỗi chân**.
@@ -93,7 +93,9 @@ git push -u origin main
 npm run package    
 
 ```
-## 📸 Giao diện hiện tại
-![image](https://github.com/user-attachments/assets/38e510be-0a54-4d64-aae1-b60a1cf09f54)
+## 📸 Giao diện ở các trang
+<img width="2000" height="1030" alt="image" src="https://github.com/user-attachments/assets/3ae07687-4fd5-4ed3-bf1c-9fe7e3f13adc" />
+<img width="975" height="523" alt="image" src="https://github.com/user-attachments/assets/e7f64075-ab72-4515-bb19-d6558af2e085" />
+<img width="975" height="514" alt="image" src="https://github.com/user-attachments/assets/66a14b63-efcb-4bbd-9550-1c3ef3938869" />
 
  
