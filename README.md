@@ -1,4 +1,4 @@
-<img width="975" height="514" alt="image" src="https://github.com/user-attachments/assets/8f532567-14c8-4996-8a13-91e99f92c3bd" /># 🦿 QuadRobot MQTT GUI
+<!-- <img width="975" height="514" alt="image" src="https://github.com/user-attachments/assets/8f532567-14c8-4996-8a13-91e99f92c3bd" /># 🦿 QuadRobot MQTT GUI -->
 
 Giao diện điều khiển và giám sát robot 4 chân thông qua giao thức **MQTT**.
 Hỗ trợ **điều chỉnh thông số PID** và **hiển thị biểu đồ thời gian thực** cho các góc IMU (Roll, Pitch, Yaw) và **3 góc của mỗi chân**.
